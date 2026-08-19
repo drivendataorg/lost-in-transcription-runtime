@@ -1,0 +1,101 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths: ["runtime/**", ".github/workflows/ci.yml"]
+  pull_request:
+    paths: ["runtime/**", ".github/workflows/ci.yml"]
+  workflow_dispatch:
+    inputs:
+      publishDev:
+        description: 'Publish dev image as gpu-{sha}'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  check-lock:
+    name: Check lockfile
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: extractions/setup-just@v4
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.11.14"
+
+      - name: Check if lockfile is up to date
+        run: |
+          just lock-check
+
+  build:
+    name: Build
+    needs: check-lock
+    environment: publish
+    runs-on:
+      group: gpu-runner-group
+    env:
+      SHOULD_PUBLISH_LATEST: ${{ github.ref == 'refs/heads/main' && vars.AUTO_PUBLISH_ON_MAIN != '' }}
+      SHOULD_PUBLISH: |
+        ${{
+          github.ref == 'refs/heads/main' && vars.AUTO_PUBLISH_ON_MAIN != ''
+          || github.event_name == 'workflow_dispatch' && inputs.publishDev
+        }}
+      LOGIN_SERVER: lostintranscriptionprodacr.azurecr.io
+      IMAGE_NAME: lost-in-transcription-competition
+      SHA_TAG: gpu-${{ github.sha }}
+      LATEST_TAG: gpu-latest
+      ACR_NAME: lostintranscriptionprodacr
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: extractions/setup-just@v4
+
+      - name: Disk information
+        run: |
+          df -h
+
+      - name: Build test image
+        run: |
+          just test-build
+
+      - name: Run tests in test image
+        run: |
+          just test-run
+
+      - name: Build runtime image
+        run: |
+          just build \
+            --tag $LOGIN_SERVER/$IMAGE_NAME:$SHA_TAG \
+            ${{ fromJson(env.SHOULD_PUBLISH_LATEST) && '--tag $LOGIN_SERVER/$IMAGE_NAME:$LATEST_TAG' || '' }}
+
+      - name: Check image size
+        run: |
+          docker image list $LOGIN_SERVER/$IMAGE_NAME --format "{{.Tag}}: {{.Size}}" | tee -a $GITHUB_STEP_SUMMARY
+
+      - name: Log into Azure
+        if: ${{ fromJson(env.SHOULD_PUBLISH) }}
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log into ACR
+        if: ${{ fromJson(env.SHOULD_PUBLISH) }}
+        run: |
+          az acr login --name $ACR_NAME
+
+      - name: Push image to ACR
+        if: ${{ fromJson(env.SHOULD_PUBLISH) }}
+        run: |
+          docker push $LOGIN_SERVER/$IMAGE_NAME --all-tags

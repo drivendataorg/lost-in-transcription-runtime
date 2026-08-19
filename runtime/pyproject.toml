@@ -1,0 +1,55 @@
+[project]
+name = "runtime"
+version = "0.1"
+description = "Competition runtime environment"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "accelerate",
+    "datasets",
+    "einops",
+    "keras",
+    "librosa",
+    "loguru",
+    "mutagen",
+    "numpy",
+    "pandas",
+    "peft",
+    "polars>=1.43.2",
+    "qwen-asr",
+    "sacrebleu",
+    "sacremoses",
+    "scikit-learn",
+    "scipy",
+    "sentencepiece",
+    "soundfile>=0.14.0",
+    "tensorflow[and-cuda]",
+    "torch",
+    "torchaudio",
+    "torchcodec",
+    "tqdm",
+    "transformers",
+    "vllm==0.23.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+
+[tool.uv]
+required-version = ">=0.9.24"
+environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+override-dependencies = [
+    "transformers<5",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+torchaudio = { index = "pytorch-cu130" }
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true

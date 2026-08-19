@@ -1,0 +1,10 @@
+# Ignore everything by default
+*
+
+# Whitelist specific files/directories
+!tests/**
+!.python-version
+!apt.txt
+!entrypoint.sh
+!pyproject.toml
+!uv.lock

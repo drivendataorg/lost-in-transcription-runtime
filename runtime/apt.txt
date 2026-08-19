@@ -1,0 +1,11 @@
+build-essential
+cmake
+curl
+g++
+gcc
+git
+ffmpeg
+libxml2
+tzdata
+wget
+zip
