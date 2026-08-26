@@ -29,6 +29,7 @@ dependencies = [
     "tqdm",
     "transformers",
     "vllm==0.23.0",
+    "kenlm",
 ]
 
 [project.optional-dependencies]
