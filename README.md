@@ -9,7 +9,7 @@ This repository is the **source of truth for the official competition runtime**:
 The same runtime serves all three language-pair tracks:
 
 - North American Spanish-English (Coming soon)
-- Spanish-Nahuatl (Coming soon)
+- [Spanish-Nahuatl](https://competitions.mozilladatacollective.com/competitions/3/lost-in-transcription-sp-nh/)
 - [Indonesian-Javanese](https://competitions.mozilladatacollective.com/competitions/1/lost-in-transcription-in-jv/)
 
 Each track is a separate competition with its own data, leaderboard, and prizes, but the task and execution environment are identical. You can develop once and submit the same code to any track.
