@@ -1,6 +1,6 @@
 ## BASE IMAGE
 FROM nvidia/cuda:13.0.3-runtime-ubuntu22.04 AS base
-COPY --from=ghcr.io/astral-sh/uv:0.9.24 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.9 /uv /uvx /bin/
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
