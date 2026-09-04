@@ -77,3 +77,11 @@ def test_keras_gpu_op():
     x = keras.ops.ones((8, 8))
     y = keras.ops.matmul(x, x)
     assert float(keras.ops.sum(y)) == 512.0
+
+
+def test_kenlm():
+    import kenlm  # noqa: F401
+
+
+def test_pyctcdecode():
+    from pyctcdecode import build_ctcdecoder  # noqa: F401
