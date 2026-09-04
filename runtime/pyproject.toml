@@ -37,7 +37,7 @@ test = [
 ]
 
 [tool.uv]
-required-version = ">=0.9.24"
+required-version = ">=0.12.9"
 environments = [
     "sys_platform == 'linux' and platform_machine == 'x86_64'",
 ]
