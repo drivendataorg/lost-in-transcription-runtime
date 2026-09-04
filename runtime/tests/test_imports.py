@@ -159,8 +159,54 @@ def test_keras_gpu_op():
     assert float(keras.ops.sum(y)) == 512.0
 
 
-def test_kenlm():
-    import kenlm  # noqa: F401
+# A tiny bigram model in ARPA format. Held inline so the test needs no data
+# file. The escaped backslashes are the \data\ and \end\ section markers that
+# the format requires.
+MINIMAL_ARPA = """\
+\\data\\
+ngram 1=4
+ngram 2=2
+
+\\1-grams:
+-1.0\t<unk>\t0.0
+0.0\t<s>\t-0.5
+-1.0\t</s>
+-0.7\ta\t-0.3
+
+\\2-grams:
+-0.4\t<s> a
+-0.4\ta </s>
+
+\\end\\
+"""
+
+
+def test_kenlm(tmp_path):
+    """Load an ARPA model plain and compressed to check what kenlm can read.
+
+    kenlm's setup.py probes for zlib.h, bzlib.h and lzma.h with g++ at build
+    time. It drops the matching format when a header is missing, and the build
+    still succeeds. An import-only test passes either way. The break would then
+    appear when a submission loads a compressed model, and the container has no
+    internet access to correct it. Most ARPA files ship compressed because they
+    are large, so read one of each form here.
+    """
+    import bz2
+    import gzip
+    import lzma
+
+    import kenlm
+
+    plain = tmp_path / "model.arpa"
+    plain.write_text(MINIMAL_ARPA)
+    expected = kenlm.Model(str(plain)).score("a")
+
+    for suffix, opener in ((".gz", gzip.open), (".bz2", bz2.open), (".xz", lzma.open)):
+        packed = tmp_path / f"model.arpa{suffix}"
+        with opener(packed, "wt") as handle:
+            handle.write(MINIMAL_ARPA)
+        score = kenlm.Model(str(packed)).score("a")
+        assert score == expected, f"kenlm read {suffix} but scored it differently"
 
 
 def test_pyctcdecode():
