@@ -13,6 +13,11 @@ overrides = [
     { package = { name = "pyctcdecode" }, dependencies = [{ name = "numpy", specifier = ">=2.3" }] },
     { name = "transformers", specifier = "<5" },
 ]
+build-constraints = [
+    { name = "cmake", specifier = "==4.4.3" },
+    { name = "setuptools", specifier = "==84.0.0" },
+    { name = "wheel", specifier = "==0.48.0" },
+]
 
 [[package]]
 name = "absl-py"
