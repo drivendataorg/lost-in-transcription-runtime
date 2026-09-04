@@ -159,26 +159,22 @@ def test_keras_gpu_op():
     assert float(keras.ops.sum(y)) == 512.0
 
 
-# A tiny bigram model in ARPA format. Held inline so the test needs no data
-# file. The escaped backslashes are the \data\ and \end\ section markers that
-# the format requires.
-MINIMAL_ARPA = """\
-\\data\\
-ngram 1=4
-ngram 2=2
+def _arpa(order):
+    """Build a tiny ARPA model of the given order.
 
-\\1-grams:
--1.0\t<unk>\t0.0
-0.0\t<s>\t-0.5
--1.0\t</s>
--0.7\ta\t-0.3
-
-\\2-grams:
--0.4\t<s> a
--0.4\ta </s>
-
-\\end\\
-"""
+    Held inline so the tests need no data file. The doubled backslashes are
+    the \\data\\ and \\end\\ section markers that the format requires.
+    """
+    lines = ["", "\\data\\", "ngram 1=4"]
+    lines += [f"ngram {k}=1" for k in range(2, order + 1)]
+    lines += ["", "\\1-grams:"]
+    lines += ["-1.0\t<unk>\t0.0", "0.0\t<s>\t-0.5", "-1.0\t</s>", "-0.7\ta\t-0.3", ""]
+    for k in range(2, order + 1):
+        gram = " ".join(["a"] * k)
+        backoff = "" if k == order else "\t-0.3"   # the top order carries none
+        lines += [f"\\{k}-grams:", f"-0.4\t{gram}{backoff}", ""]
+    lines += ["\\end\\", ""]
+    return "\n".join(lines)
 
 
 def test_kenlm(tmp_path):
@@ -198,15 +194,37 @@ def test_kenlm(tmp_path):
     import kenlm
 
     plain = tmp_path / "model.arpa"
-    plain.write_text(MINIMAL_ARPA)
+    plain.write_text(_arpa(2))
     expected = kenlm.Model(str(plain)).score("a")
 
     for suffix, opener in ((".gz", gzip.open), (".bz2", bz2.open), (".xz", lzma.open)):
         packed = tmp_path / f"model.arpa{suffix}"
         with opener(packed, "wt") as handle:
-            handle.write(MINIMAL_ARPA)
+            handle.write(_arpa(2))
         score = kenlm.Model(str(packed)).score("a")
         assert score == expected, f"kenlm read {suffix} but scored it differently"
+
+
+def test_kenlm_max_order(tmp_path):
+    """Check that kenlm compiled with the order the Dockerfile asks for.
+
+    kenlm reads MAX_ORDER at build time and bakes it in, defaulting to 6. A
+    model above that limit raises FormatLoadException and nothing can raise the
+    limit afterward. Character-level n-gram LMs, the usual pairing with
+    pyctcdecode, often run to order 7 or higher.
+
+    Read the wanted order from the environment rather than hard-coding it. The
+    Dockerfile sets MAX_ORDER, and uv can hand back a wheel it built before
+    that value changed, so comparing the two is what catches the stale wheel.
+    """
+    import os
+
+    import kenlm
+
+    want = int(os.environ.get("MAX_ORDER", "10"))
+    model = tmp_path / f"order{want}.arpa"
+    model.write_text(_arpa(want))
+    assert kenlm.Model(str(model)).order == want
 
 
 def test_pyctcdecode():
