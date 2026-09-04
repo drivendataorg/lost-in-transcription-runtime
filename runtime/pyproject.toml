@@ -45,7 +45,7 @@ environments = [
 ]
 override-dependencies = [
     "transformers<5",
-    "numpy>=2.3",
+    { package = { name = "pyctcdecode" }, dependencies = ["numpy>=2.3"] },
 ]
 
 [tool.uv.sources]
