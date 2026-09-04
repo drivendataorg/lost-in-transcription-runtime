@@ -50,7 +50,14 @@ ENV UV_NO_DEV=1 \
 # Use cache mount to speed up rebuilds
 ENV UV_CACHE_DIR=/home/runtimeuser/.cache/uv
 ENV UV_PYTHON_CACHE_DIR=/home/runtimeuser/.cache/uv/python
-RUN --mount=type=cache,id=uv-cache,target=/home/runtimeuser/.cache/uv,uid=1000,gid=1000 \
+# kenlm fixes its highest n-gram order when it compiles, and its default of 6
+# rejects the order 7 to 10 models that character-level LMs often use.
+ENV MAX_ORDER=10
+# uv keys a built wheel on the source archive alone, so it ignores MAX_ORDER
+# and the compression libraries in apt.txt. Raise the number on the cache id
+# whenever either of those changes. A new id starts an empty cache, so kenlm
+# gets built again instead of restored from a wheel that predates the change.
+RUN --mount=type=cache,id=uv-cache-1,target=/home/runtimeuser/.cache/uv,uid=1000,gid=1000 \
     uv sync
 
 # Copy entrypoint
@@ -71,7 +78,7 @@ CMD ["bash", "/entrypoint.sh"]
 ## TEST-BASE
 FROM base AS test-base
 ENV UV_PYTHON_CACHE_DIR=/home/runtimeuser/.cache/uv/python
-RUN --mount=type=cache,id=uv-cache,target=/home/runtimeuser/.cache/uv,uid=1000,gid=1000 \
+RUN --mount=type=cache,id=uv-cache-1,target=/home/runtimeuser/.cache/uv,uid=1000,gid=1000 \
     uv sync --extra test
 COPY --chown=${RUNTIME_USER}:${RUNTIME_USER} tests/ ./tests/
 

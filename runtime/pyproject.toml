@@ -8,6 +8,7 @@ dependencies = [
     "datasets",
     "einops",
     "keras",
+    "kenlm==0.3.0",
     "librosa",
     "loguru",
     "mutagen",
@@ -15,6 +16,7 @@ dependencies = [
     "pandas",
     "peft",
     "polars>=1.43.2",
+    "pyctcdecode==0.5.0",
     "qwen-asr",
     "sacrebleu",
     "sacremoses",
@@ -43,6 +45,12 @@ environments = [
 ]
 override-dependencies = [
     "transformers<5",
+    { package = { name = "pyctcdecode" }, dependencies = ["numpy>=2.3"] },
+]
+build-constraint-dependencies = [
+    "setuptools==84.0.0",
+    "wheel==0.48.0",
+    "cmake==4.4.3",
 ]
 
 [tool.uv.sources]
