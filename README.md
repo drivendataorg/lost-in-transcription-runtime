@@ -8,7 +8,7 @@ This repository is the **source of truth for the official competition runtime**:
 
 The same runtime serves all three language-pair tracks:
 
-- North American Spanish-English (Coming soon)
+- [North American Spanish-English](https://competitions.mozilladatacollective.com/competitions/2/lost-in-transcription-sp-en/)
 - [Spanish-Nahuatl](https://competitions.mozilladatacollective.com/competitions/3/lost-in-transcription-sp-nh/)
 - [Indonesian-Javanese](https://competitions.mozilladatacollective.com/competitions/1/lost-in-transcription-in-jv/)
 
