@@ -5,8 +5,10 @@ description = "Competition runtime environment"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "accelerate",
+    "ctranslate2==4.8.2",
     "datasets",
     "einops",
+    "faster-whisper==1.2.1",
     "keras",
     "kenlm==0.3.0",
     "librosa",
