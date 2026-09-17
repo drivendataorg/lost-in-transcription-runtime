@@ -2,6 +2,9 @@ data/*
 !data/.gitkeep
 data-archive/
 
+# Scratch space for Hugging Face model downloads
+.huggingface_models/
+
 submission/*
 !submission/.gitkeep
 submission_src/*

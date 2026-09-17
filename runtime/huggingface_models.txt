@@ -1,0 +1,14 @@
+# One Hugging Face model repo ID per line. Lines starting with # are comments.
+#
+# Models listed here are downloaded by CI and uploaded to the
+# huggingface-models blob container, where submission pods mount them
+# read-only at /code_execution/huggingface_models/<model id>.
+#
+# A model is uploaded once and never overwritten, so that pods reading it
+# keep a stable view. To refresh a model, ask a competition administrator to
+# replace it while no pods are running.
+#
+# Example:
+# sentence-transformers/all-MiniLM-L6-v2
+
+openai/whisper-tiny
