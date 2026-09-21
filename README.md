@@ -196,7 +196,7 @@ You can compute the same word error rate (WER) the platform reports using [`scor
 just score /path/to/ground_truth.csv
 ```
 
-The ground truth CSV must have the same shape as `submission_format.csv` (columns `audio_filename` and `transcription`). By default the scorer reads predictions from `submission/submission.csv`. To score a different predictions file, pass its path as a second argument:
+The ground truth CSV must have the same shape as `submission_format.csv` (columns `audio_filename` and `transcript`). By default the scorer reads predictions from `submission/submission.csv`. To score a different predictions file, pass its path as a second argument:
 
 ```sh
 just score /path/to/ground_truth.csv /path/to/predictions.csv
