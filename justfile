@@ -104,6 +104,25 @@ lock *ARGS:
 lock-check:
     uv lock --check
 
+
+# Download Hugging Face model snapshots listed in runtime/huggingface_models.txt
+[group('development')]
+download-huggingface-models out_dir=".huggingface_models" *models:
+    uv run --with huggingface-hub python runtime/scripts/huggingface_models.py download \
+        --output "{{out_dir}}" {{models}}
+
+# Check that each HF model in the manifest exists and is downloadable (no full download)
+[group('development')]
+verify-huggingface-models:
+    uv run --with huggingface-hub python runtime/scripts/huggingface_models.py verify
+
+# Upload new HF models to Azure one at a time (download, upload, delete); never overwrites
+[group('development')]
+sync-huggingface-models account container out_dir=".huggingface_models":
+    uv run --with huggingface-hub --with azure-identity --with azure-storage-blob \
+        python runtime/scripts/huggingface_models.py sync \
+        "{{account}}" "{{container}}" --output "{{out_dir}}"
+
 # Build local dev runtime image
 [group('development')]
 build *ARGS:

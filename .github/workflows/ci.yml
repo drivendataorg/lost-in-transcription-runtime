@@ -54,11 +54,17 @@ jobs:
       SHA_TAG: gpu-${{ github.sha }}
       LATEST_TAG: gpu-latest
       ACR_NAME: lostintranscriptionprodacr
+      HF_MODELS_STORAGE_ACCOUNT: ${{ vars.HF_MODELS_STORAGE_ACCOUNT }}
+      HF_MODELS_STORAGE_CONTAINER: ${{ vars.HF_MODELS_STORAGE_CONTAINER }}
 
     steps:
       - uses: actions/checkout@v7
 
       - uses: extractions/setup-just@v4
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.12.9"
 
       - name: Disk information
         run: |
@@ -82,6 +88,15 @@ jobs:
         run: |
           docker image list $LOGIN_SERVER/$IMAGE_NAME --format "{{.Tag}}: {{.Size}}" | tee -a $GITHUB_STEP_SUMMARY
 
+      - name: Verify Hugging Face models are downloadable
+        if: ${{ !fromJson(env.SHOULD_PUBLISH) }}
+        run: |
+          {
+            echo "## Hugging Face model check"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+          just verify-huggingface-models
+
       - name: Log into Azure
         if: ${{ fromJson(env.SHOULD_PUBLISH) }}
         uses: azure/login@v1
@@ -99,3 +114,12 @@ jobs:
         if: ${{ fromJson(env.SHOULD_PUBLISH) }}
         run: |
           docker push $LOGIN_SERVER/$IMAGE_NAME --all-tags
+
+      # Skips silently until the repo sets both variables to the storage
+      # account and the huggingface-models container.
+      - name: Sync Hugging Face models to Azure Storage
+        if: ${{ fromJson(env.SHOULD_PUBLISH) && env.HF_MODELS_STORAGE_ACCOUNT != '' && env.HF_MODELS_STORAGE_CONTAINER != '' }}
+        run: |
+          just sync-huggingface-models \
+            "$HF_MODELS_STORAGE_ACCOUNT" \
+            "$HF_MODELS_STORAGE_CONTAINER"
